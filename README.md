@@ -29,7 +29,16 @@ the server does not accept more than one client thus, when the comunication ends
 ## Requirements
 
 - Python 3.7+
-- Pygame 
+- Pygame
+
+## Installation
+
+Clone or download zip
+- Run `pipenv install` in directory to install requirements
+
+## Development setup
+
+- Run `pipenv install --dev` to install dev dependencies
 
 ## License
 
