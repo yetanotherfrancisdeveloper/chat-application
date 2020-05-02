@@ -53,6 +53,9 @@ def sending(event):
         input_get = input_user.get()
         if input_get == '[quit]':
             client_socket.sendall(bytes('[quit]', 'utf-8'))
+            # UPDATE Sending FIN packet
+            client_socket.shutdown(1)
+
             client_socket.close()
             base.destroy()
         else:
@@ -79,12 +82,17 @@ def receiving(event):
                 text.yview(END)
                 text.configure(state='disabled')
             else:
+                # UPDATE Sending FIN packet
+                client_socket.shutdown(1)
+
                 client_socket.close()
                 break
     except ConnectionAbortedError:
         print('Disconnected!')
     except ConnectionResetError:
         print('Disconnected!')
+    except OSError:
+        print('Disconnected successfully! (FIN)')
 
 
 def gui():
@@ -124,7 +132,17 @@ def closing_window():
         except ConnectionResetError:
             print('Tried to disconnect when closing window, but you were already disconnected.')
             base.destroy()
-        client_socket.close()
+        except OSError:
+            print('Disconnected successfully closing window! (FIN)')
+            base.destroy()
+        # UPDATE Sending FIN packet
+        try:
+            client_socket.shutdown(1)
+
+            client_socket.close()
+        except OSError:
+            print('Server disconnected! (FIN)')
+
         try:
             base.destroy()
         except TclError:

@@ -54,6 +54,9 @@ class TCPHandlerChatRoom:
         self.host = host_server
         self.port = port_server
         self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # UPDATE Reuse address in case of many subsequent tries because of the time wait after closing the connection
+        self.socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
         self.socket_server.bind((self.host, self.port))
         self.socket_server.listen(5)
 
@@ -65,7 +68,7 @@ class TCPHandlerChatRoom:
         closing_thread.start()
         while True:
             try:
-                # The exception is needed for because of the closing of the server.
+                # The exception is needed because of the closing of the server.
                 client_socket, address = self.socket_server.accept()
                 self.clients_info[client_socket] = address
                 client_thread = threading.Thread(target=self.clients_handler, args=(client_socket, address))
@@ -85,6 +88,10 @@ class TCPHandlerChatRoom:
             if client_name == '[quit]':
                 print(f'{address[0]}::{address[1]} left before joining ...')
                 del self.clients_info[sock]
+                # UPDATE Double two-way handshake
+                sock.shutdown(1)
+
+                sock.close()
             else:
                 while client_name in self.clients_names.values():
                     sock.sendall(bytes("This username has been already taken, sorry! "
@@ -103,6 +110,7 @@ class TCPHandlerChatRoom:
         """Receiving and broadcasting messages from and to multiple clients"""
 
         try:
+            # Add thread for username
             self.get_username(client, address)
             while True:
                 for client_sock in list(self.clients_info.keys()):
@@ -144,6 +152,9 @@ class TCPHandlerChatRoom:
         print(self.clients_names[self.clients_info[disconnecting_sock]], "has left ...")
         del self.clients_names[self.clients_info[disconnecting_sock]]
         del self.clients_info[disconnecting_sock]
+        # UPDATE Double two-way handshake
+        disconnecting_sock.shutdown(1)
+
         disconnecting_sock.close()
 
     def closing_server_message(self):
@@ -162,14 +173,19 @@ class TCPHandlerChatRoom:
     def closing(self):
         """Handle the closing of the server. Closes the sockets of
         the clients connected, the server's socket and exits the program"""
+        try:
+            if self.clients_info:
+                for client_sock in list(self.clients_info.keys()):
+                    # UPDATE Double two-way handshake
+                    client_sock.shutdown(1)
 
-        if self.clients_info:
-            for client_sock in list(self.clients_info.keys()):
-                client_sock.close()
-            self.socket_server.close()
-            sys.exit()
-        else:
-            self.socket_server.close()
+                    client_sock.close()
+                self.socket_server.close()
+                sys.exit()
+            else:
+                self.socket_server.close()
+                sys.exit()
+        except OSError:
             sys.exit()
 
 

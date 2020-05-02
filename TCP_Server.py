@@ -39,6 +39,8 @@ class TCPHandler:
         self.port = port_server
         self.hostname = hostname
         self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # UPDATE Reuse address in case of many subsequent tries because of the time wait after closing the connection
+        self.socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket_server.bind((self.host, self.port))
         self.socket_server.listen(5)
 
@@ -61,12 +63,18 @@ class TCPHandler:
                 print('Server closed!')
                 client_socket.sendall(bytes('The server has disconnected! '
                                             'You may leave the chat.', 'utf-8'))
+                # UPDATE Double two-way handshake
+                client_socket.shutdown(1)
+
                 client_socket.close()
                 self.socket_server.close()
 
         except KeyboardInterrupt:
             print('Server closed!')
             self.socket_server.close()
+        # In case of FIN segment
+        except OSError:
+            pass
 
     def receiving(self, sock):
         """Receive and print messages from the client connected."""
@@ -75,6 +83,9 @@ class TCPHandler:
             sock.sendall(bytes('Enter your username (Type "[quit]" or close the window to quit the chat):\n', 'utf-8'))
             client_name = sock.recv(2048).decode()
             if client_name == '[quit]':
+                # UPDATE Double two-way handshake
+                sock.shutdown(1)
+
                 sock.close()
                 print('User left the chat before joining.')
             else:
@@ -92,6 +103,9 @@ class TCPHandler:
                     else:
                         self.disconnection(sock, client_name)
         except ConnectionAbortedError:
+            pass
+        # In case of FIN
+        except OSError:
             pass
 
     def sending(self, sock):
@@ -112,6 +126,8 @@ class TCPHandler:
 
     def disconnection(self, sock, username):
         """Closing the socket of the client when he is disconnecting, print that the user has left the chat."""
+        # UPDATE Double two-way handshake
+        sock.shutdown(1)
 
         sock.close()
         print(f'{username} left the chat!')
