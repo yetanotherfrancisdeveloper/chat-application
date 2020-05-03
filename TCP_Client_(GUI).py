@@ -156,6 +156,7 @@ def main():
     server_ip = str(input('Enter the IP of the server to connect to: '))
 
     server_port = int(input('Enter the port number: '))
+    # Just press 'Enter' if using 'my_server_name'; if using 'server_ip' type the host's IP
     client_socket.connect((my_server_name, server_port))
     # Thread to receive messages while sending
     receiving_thread = threading.Thread(target=receiving, args=(client_socket, ))
