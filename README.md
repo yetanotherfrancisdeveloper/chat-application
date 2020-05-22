@@ -32,7 +32,7 @@ In the 'Extra' directory there are two scripts:
 - TCP_Chatroom_Server_(SocketServer).py
 - TCP_Server_Concurrent.py
 
-In the first is a server for a chat room made with the use of the module [socketServer](https://docs.python.org/3.7/library/socketserver.html). The second one is an intermediate server that allows more clients to connect but, in case the server is
+The first one is a server for a chat room made with the use of the module [socketServer](https://docs.python.org/3.7/library/socketserver.html). The second one is an intermediate server that allows more clients to connect but, in case the server is
 already connected to a client, they are asked to try again in a second moment.
 
 Both the programs at the moment are not in further development and not up-to-date with the main ones. It is thus suggested to look at the programs in the main directory and only consider the extra for a glimpse at the different approaches.
