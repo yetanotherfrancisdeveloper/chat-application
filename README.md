@@ -37,9 +37,6 @@ already connected to a client, they are asked to try again in a second moment.
 
 Both the programs at the moment are not in further development and not up-to-date with the main ones. It is thus suggested to look at the programs in the main directory and only consider the extra for a glimpse at the different approaches.
 
-## Performance
-In development ...
-
 ## Requirements
 
 - Python 3.7+
